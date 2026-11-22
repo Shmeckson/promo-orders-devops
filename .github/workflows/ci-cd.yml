@@ -1,0 +1,44 @@
+name: CI/CD — Promo Orders App
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
+
+jobs:
+  test-and-build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.2'
+          extensions: mysqli, pdo_mysql
+
+      - name: Syntax check PHP files
+        run: find . -name "*.php" -not -path "./vendor/*" -exec php -l {} \;
+
+      - name: Run automated tests
+        run: php tests/test_app.php
+
+      - name: Build Docker image
+        run: docker build -t promo-orders-app:${{ github.sha }} .
+
+  deploy:
+    needs: test-and-build
+    runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Deploy step placeholder
+        run: |
+          echo "Tests passed and Docker image built successfully."
+          echo "Configure cloud target (Heroku / AWS / Google Cloud) secrets for production deploy."
